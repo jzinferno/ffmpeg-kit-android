@@ -55,7 +55,7 @@ under the prebuilt folder.\n"
 }
 
 enable_main_build() {
-  export API=24
+  export API=21
 }
 
 enable_lts_build() {
@@ -89,9 +89,9 @@ APP_STL := ${APP_STL}
 
 APP_PLATFORM := android-${API}
 
-APP_CFLAGS := -O3 -DANDROID ${LTS_BUILD_FLAG}${BUILD_DATE} -Wall -Wno-deprecated-declarations -Wno-pointer-sign -Wno-switch -Wno-unused-result -Wno-unused-variable
+APP_CFLAGS := -Oz -DANDROID ${LTS_BUILD_FLAG}${BUILD_DATE} -Wall -Wno-deprecated-declarations -Wno-pointer-sign -Wno-switch -Wno-unused-result -Wno-unused-variable
 
-APP_LDFLAGS := -Wl,--hash-style=both
+APP_LDFLAGS := "-Wl,-z,max-page-size=16384,--hash-style=both"
 EOF
 }
 
@@ -274,30 +274,30 @@ get_size_optimization_cflags() {
   arm-v7a | arm-v7a-neon)
     case $1 in
     ffmpeg)
-      ARCH_OPTIMIZATION="${LINK_TIME_OPTIMIZATION_FLAGS} -O2 -ffunction-sections -fdata-sections"
+      ARCH_OPTIMIZATION="${LINK_TIME_OPTIMIZATION_FLAGS} -fuse-ld=lld -Oz -ffunction-sections -fdata-sections"
       ;;
     *)
-      ARCH_OPTIMIZATION="-Os -ffunction-sections -fdata-sections"
+      ARCH_OPTIMIZATION="-Oz -ffunction-sections -fdata-sections"
       ;;
     esac
     ;;
   arm64-v8a)
     case $1 in
     ffmpeg)
-      ARCH_OPTIMIZATION="${LINK_TIME_OPTIMIZATION_FLAGS} -fuse-ld=lld -O2 -ffunction-sections -fdata-sections"
+      ARCH_OPTIMIZATION="${LINK_TIME_OPTIMIZATION_FLAGS} -fuse-ld=lld -Oz -ffunction-sections -fdata-sections"
       ;;
     *)
-      ARCH_OPTIMIZATION="-Os -ffunction-sections -fdata-sections"
+      ARCH_OPTIMIZATION="-Oz -ffunction-sections -fdata-sections"
       ;;
     esac
     ;;
   x86 | x86-64)
     case $1 in
     ffmpeg)
-      ARCH_OPTIMIZATION="${LINK_TIME_OPTIMIZATION_FLAGS} -Os -ffunction-sections -fdata-sections"
+      ARCH_OPTIMIZATION="${LINK_TIME_OPTIMIZATION_FLAGS} -fuse-ld=lld -Oz -ffunction-sections -fdata-sections"
       ;;
     *)
-      ARCH_OPTIMIZATION="-Os -ffunction-sections -fdata-sections"
+      ARCH_OPTIMIZATION="-Oz -ffunction-sections -fdata-sections"
       ;;
     esac
     ;;
@@ -365,7 +365,7 @@ get_cxxflags() {
   fi
 
   if [[ -z ${FFMPEG_KIT_DEBUG} ]]; then
-    local OPTIMIZATION_FLAGS="-Os -ffunction-sections -fdata-sections"
+    local OPTIMIZATION_FLAGS="-Oz -ffunction-sections -fdata-sections"
   else
     local OPTIMIZATION_FLAGS="${FFMPEG_KIT_DEBUG}"
   fi
@@ -376,7 +376,7 @@ get_cxxflags() {
     ;;
   ffmpeg)
     if [[ -z ${FFMPEG_KIT_DEBUG} ]]; then
-      echo "-std=c++11 -fno-exceptions -fno-rtti ${LINK_TIME_OPTIMIZATION_FLAGS} -O2 -ffunction-sections -fdata-sections"
+      echo "-std=c++11 -fno-exceptions -fno-rtti ${LINK_TIME_OPTIMIZATION_FLAGS} -Oz -ffunction-sections -fdata-sections"
     else
       echo "-std=c++11 -fno-exceptions -fno-rtti ${FFMPEG_KIT_DEBUG}"
     fi
@@ -433,20 +433,20 @@ get_size_optimization_ldflags() {
   arm64-v8a)
     case $1 in
     ffmpeg)
-      echo "-Wl,--gc-sections ${LINK_TIME_OPTIMIZATION_FLAGS} -fuse-ld=lld -O2 -ffunction-sections -fdata-sections -finline-functions"
+      echo "-Wl,--gc-sections ${LINK_TIME_OPTIMIZATION_FLAGS} -fuse-ld=lld -Oz -ffunction-sections -fdata-sections -finline-functions"
       ;;
     *)
-      echo "-Wl,--gc-sections -Os -ffunction-sections -fdata-sections"
+      echo "-Wl,--gc-sections -Oz -ffunction-sections -fdata-sections"
       ;;
     esac
     ;;
   *)
     case $1 in
     ffmpeg)
-      echo "-Wl,--gc-sections,--icf=safe ${LINK_TIME_OPTIMIZATION_FLAGS} -O2 -ffunction-sections -fdata-sections -finline-functions"
+      echo "-Wl,--gc-sections,--icf=safe ${LINK_TIME_OPTIMIZATION_FLAGS} -Oz -ffunction-sections -fdata-sections -finline-functions"
       ;;
     *)
-      echo "-Wl,--gc-sections,--icf=safe -Os -ffunction-sections -fdata-sections"
+      echo "-Wl,--gc-sections,--icf=safe -Oz -ffunction-sections -fdata-sections"
       ;;
     esac
     ;;
